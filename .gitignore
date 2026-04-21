@@ -60,11 +60,19 @@ config/config.yaml
 .roo/
 .roomodes
 
-# Documentation
+# Documentation and data files
 *.docx
 *.pdf
 *.pptx
+*.csv
+*.md
 full.md
+full_updated.md
+references_30.md
+
+# Data directories (keep locally, exclude from git)
+references/
+results/
 
 # Temporary files
 temp/
