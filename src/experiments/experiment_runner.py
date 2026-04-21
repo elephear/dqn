@@ -687,10 +687,23 @@ class ExperimentRunner:
             results: 实验结果
             experiment_name: 实验名称
         """
+        # 自定义JSON编码器处理numpy类型
+        class NumpyEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, (np.integer, np.int32, np.int64)):
+                    return int(obj)
+                elif isinstance(obj, (np.floating, np.float32, np.float64)):
+                    return float(obj)
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif isinstance(obj, np.bool_):
+                    return bool(obj)
+                return super().default(obj)
+        
         # 保存为JSON
         json_path = self.results_dir / f"{experiment_name}.json"
         with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2, ensure_ascii=False)
+            json.dump(results, f, indent=2, ensure_ascii=False, cls=NumpyEncoder)
         
         # 保存为CSV（如果可能）
         try:

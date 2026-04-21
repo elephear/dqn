@@ -1,0 +1,199 @@
+{
+  "config": {
+    "network": {
+      "min_nodes": 10,
+      "max_nodes": 50
+    },
+    "experiment": {
+      "num_runs": 3,
+      "max_steps": 20
+    }
+  },
+  "results": [
+    {
+      "step": 0,
+      "request_id": "req_1776672506755",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 1,
+      "request_id": "req_1776672506755",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 2,
+      "request_id": "req_1776672506755",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 3,
+      "request_id": "req_1776672506755",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 4,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 5,
+      "request_id": "req_1776672506756",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 6,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 7,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": true
+    },
+    {
+      "step": 8,
+      "request_id": "req_1776672506756",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 9,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 10,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 11,
+      "request_id": "req_1776672506756",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 12,
+      "request_id": "req_1776672506756",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 13,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": true
+    },
+    {
+      "step": 14,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 15,
+      "request_id": "req_1776672506756",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 16,
+      "request_id": "req_1776672506756",
+      "request_type": "compute_scheduling",
+      "decision_time": 0.0,
+      "path_length": 1,
+      "success": true
+    },
+    {
+      "step": 17,
+      "request_id": "req_1776672506757",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 5,
+      "success": false
+    },
+    {
+      "step": 18,
+      "request_id": "req_1776672506757",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 1,
+      "success": true
+    },
+    {
+      "step": 19,
+      "request_id": "req_1776672506757",
+      "request_type": "edge_ai",
+      "decision_time": 0.0,
+      "path_length": 4,
+      "success": true
+    }
+  ],
+  "statistics": {
+    "total_steps": 20,
+    "successful_decisions": 5,
+    "success_rate": 0.25,
+    "avg_decision_time": 0.0,
+    "avg_path_length": 4.55,
+    "request_types": {
+      "compute_scheduling": {
+        "count": 12,
+        "success": 3
+      },
+      "edge_ai": {
+        "count": 8,
+        "success": 2
+      }
+    }
+  },
+  "scheduler_stats": {
+    "total_requests": 20,
+    "successful_decisions": 20,
+    "cache_hits": 0,
+    "average_decision_time": 0,
+    "success_rate": 1.0
+  },
+  "timestamp": 1776672506.7600617
+}

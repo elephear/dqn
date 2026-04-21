@@ -39,14 +39,19 @@ class QNetwork(nn.Module):
         self.action_embedding = nn.Embedding(action_dim, hidden_dim // 2)
         
         # 融合层
-        fusion_dim = (hidden_dim // 2) * 2
+        # 基础维度：状态特征 + 动作特征
+        base_fusion_dim = (hidden_dim // 2) * 2
+        # 如果包含权重，额外增加权重维度（3个目标）
+        weight_dim = 3
+        fusion_dim = base_fusion_dim + weight_dim
+        
         self.fusion_layers = nn.Sequential(
             nn.Linear(fusion_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1)  # Q值输出
         )
         
-    def forward(self, state_features: torch.Tensor, action: torch.Tensor, 
+    def forward(self, state_features: torch.Tensor, action: torch.Tensor,
                 weights: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         前向传播
@@ -66,10 +71,18 @@ class QNetwork(nn.Module):
         if action.dim() == 2:  # (batch_size, 2) -> (目标节点, 下一跳)
             # 将二维动作编码为一维索引
             max_nodes = self.config.get('network', {}).get('max_nodes', 100)
-            action_flat = action[:, 0] * max_nodes + action[:, 1]
+            max_neighbors = 10
+            # 确保动作索引在有效范围内
+            target_nodes = torch.clamp(action[:, 0], 0, max_nodes - 1)
+            next_hops = torch.clamp(action[:, 1], 0, max_neighbors - 1)
+            action_flat = target_nodes * max_neighbors + next_hops
         else:  # 已经是一维索引
             action_flat = action
             
+        # 确保动作索引在嵌入层范围内
+        action_dim = self.action_embedding.num_embeddings
+        action_flat = torch.clamp(action_flat, 0, action_dim - 1)
+        
         action_features = self.action_embedding(action_flat)
         
         # 融合状态和动作特征
@@ -128,9 +141,12 @@ class DQNAgent:
         self.config = config
         dqn_config = config.get('dqn', {})
         
+        # 设备配置
+        self.device = self._get_device(config)
+        
         # 主网络和目标网络
-        self.q_network = QNetwork(config)
-        self.target_network = QNetwork(config)
+        self.q_network = QNetwork(config).to(self.device)
+        self.target_network = QNetwork(config).to(self.device)
         self.target_network.load_state_dict(self.q_network.state_dict())
         
         # 优化器
@@ -153,8 +169,33 @@ class DQNAgent:
         # 训练计数器
         self.train_step = 0
         self.target_update_freq = dqn_config.get('target_update_freq', 100)
+    
+    def _get_device(self, config: dict) -> torch.device:
+        """
+        获取可用设备
         
-    def select_action(self, state_features: torch.Tensor, 
+        Args:
+            config: 配置字典
+            
+        Returns:
+            torch.device: 设备对象
+        """
+        device_config = config.get('device', {})
+        device_type = device_config.get('type', 'auto')
+        
+        if device_type == 'cuda' and torch.cuda.is_available():
+            device_id = device_config.get('device_id', 0)
+            return torch.device(f'cuda:{device_id}')
+        elif device_type == 'cpu':
+            return torch.device('cpu')
+        else:
+            # 自动选择
+            if torch.cuda.is_available():
+                return torch.device('cuda:0')
+            else:
+                return torch.device('cpu')
+        
+    def select_action(self, state_features: torch.Tensor,
                       possible_actions: List[torch.Tensor],
                       weights: Optional[torch.Tensor] = None,
                       training: bool = True) -> torch.Tensor:
@@ -172,6 +213,11 @@ class DQNAgent:
         """
         if not possible_actions:
             return None
+        
+        # 确保状态特征和权重在正确的设备上
+        state_features = state_features.to(self.device)
+        if weights is not None:
+            weights = weights.to(self.device)
         
         if training and np.random.random() < self.epsilon:
             # 探索：随机选择动作

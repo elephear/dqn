@@ -15,8 +15,12 @@ class GCN_DQN_Scheduler:
     def __init__(self, config: dict):
         self.config = config
         
+        # 设备配置
+        self.device = self._get_device(config)
+        print(f"使用设备: {self.device}")
+        
         # 初始化各模块
-        self.gcn_extractor = GCNFeatureExtractor(config)
+        self.gcn_extractor = GCNFeatureExtractor(config, device=self.device).to(self.device)
         self.dqn_agent = DQNAgent(config)
         self.weight_adjuster = DynamicWeightAdjuster(config)
         self.path_cache = FastPathCache(config)
@@ -27,6 +31,31 @@ class GCN_DQN_Scheduler:
         
         # 训练模式
         self.training_mode = True
+    
+    def _get_device(self, config: dict) -> torch.device:
+        """
+        获取可用设备
+        
+        Args:
+            config: 配置字典
+            
+        Returns:
+            torch.device: 设备对象
+        """
+        device_config = config.get('device', {})
+        device_type = device_config.get('type', 'auto')
+        
+        if device_type == 'cuda' and torch.cuda.is_available():
+            device_id = device_config.get('device_id', 0)
+            return torch.device(f'cuda:{device_id}')
+        elif device_type == 'cpu':
+            return torch.device('cpu')
+        else:
+            # 自动选择
+            if torch.cuda.is_available():
+                return torch.device('cuda:0')
+            else:
+                return torch.device('cpu')
         
     def schedule(self, request: Dict[str, Any], 
                  network_state: Dict[str, Any]) -> Tuple[Optional[int], Optional[list], Optional[float]]:
@@ -54,13 +83,15 @@ class GCN_DQN_Scheduler:
         # 2. 提取图特征
         try:
             h_G, _ = self.gcn_extractor.extract_features(network_state)
+            # 确保特征在正确的设备上
+            h_G = h_G.to(self.device)
         except Exception as e:
             print(f"特征提取失败: {e}")
             return None, None, None
         
         # 3. 动态调整权重
         weights = self.weight_adjuster.adjust(request['type'], network_state)
-        weights_tensor = torch.tensor(weights, dtype=torch.float32).unsqueeze(0)
+        weights_tensor = torch.tensor(weights, dtype=torch.float32).unsqueeze(0).to(self.device)
         
         # 4. 检查缓存
         cached_decision = self.path_cache.lookup(
@@ -150,7 +181,7 @@ class GCN_DQN_Scheduler:
             for neighbor in neighbors:
                 # 编码动作: (目标节点索引, 下一跳索引)
                 # 这里简化处理，使用节点ID
-                action = torch.tensor([target_node, neighbor], dtype=torch.long)
+                action = torch.tensor([target_node, neighbor], dtype=torch.long, device=self.device)
                 possible_actions.append(action)
         
         return possible_actions

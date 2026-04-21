@@ -360,6 +360,10 @@ class GeneticAlgorithmScheduler:
         """
         target, path = individual
         
+        # 如果路径为空或只有一个节点，直接返回
+        if len(path) <= 1:
+            return (target, path)
+        
         mutation_type = random.random()
         
         if mutation_type < 0.3 and len(path) > 1:

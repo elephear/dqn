@@ -38,11 +38,29 @@ class GCNFeatureExtractor(nn.Module):
     基于论文第4.2节设计
     """
     
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, device: torch.device = None):
         super().__init__()
         self.config = config
         
         gcn_config = config.get('gcn', {})
+        
+        # 设备配置
+        if device is not None:
+            self.device = device
+        else:
+            device_config = config.get('device', {})
+            device_type = device_config.get('type', 'auto')
+            if device_type == 'cuda' and torch.cuda.is_available():
+                device_id = device_config.get('device_id', 0)
+                self.device = torch.device(f'cuda:{device_id}')
+            elif device_type == 'cpu':
+                self.device = torch.device('cpu')
+            else:
+                # 自动选择
+                if torch.cuda.is_available():
+                    self.device = torch.device('cuda:0')
+                else:
+                    self.device = torch.device('cpu')
         
         # 第一层GCN
         self.gcn1 = GCNLayer(
@@ -84,8 +102,12 @@ class GCNFeatureExtractor(nn.Module):
             h_G: 图级特征向量 (d')
             Z: 节点级特征矩阵 (|V| x d')
         """
+        # 确保输入张量在正确的设备上
+        A = A.to(self.device)
+        X = X.to(self.device)
+        
         # 添加自连接: Ã = A + I
-        A_hat = A + torch.eye(A.size(0), device=A.device)
+        A_hat = A + torch.eye(A.size(0), device=self.device)
         
         # 计算归一化邻接矩阵: D^{-1/2}ÃD^{-1/2}
         D_hat = torch.diag(torch.sum(A_hat, dim=1))
@@ -143,7 +165,7 @@ class GCNFeatureExtractor(nn.Module):
         adjacency_list = network_state.get('adjacency_list', {})
         
         n_nodes = len(nodes)
-        A = torch.zeros((n_nodes, n_nodes))
+        A = torch.zeros((n_nodes, n_nodes), device=self.device)
         
         # 构建节点ID到索引的映射
         node_id_to_idx = {node['id']: i for i, node in enumerate(nodes)}
@@ -191,4 +213,5 @@ class GCNFeatureExtractor(nn.Module):
                 ]
             features.append(node_features)
         
-        return torch.tensor(features, dtype=torch.float32)
+        # 在正确的设备上创建张量
+        return torch.tensor(features, dtype=torch.float32, device=self.device)
